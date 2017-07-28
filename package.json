@@ -15,5 +15,21 @@
   "bugs": {
     "url": "https://github.com/solid/solid-tpf/issues"
   },
-  "homepage": "https://github.com/solid/solid-tpf#readme"
+  "homepage": "https://github.com/solid/solid-tpf#readme",
+  "scripts": {
+    "test": "npm run prepare && npm run lint",
+    "prepare": "gulp build",
+    "lint": "eslint *.js src/*.js"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "babel-preset-node6": "^11.0.0",
+    "eslint": "^4.3.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "pre-commit": "^1.2.2"
+  },
+  "pre-commit": [
+    "test"
+  ]
 }
