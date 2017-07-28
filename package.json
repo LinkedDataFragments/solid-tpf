@@ -1,0 +1,19 @@
+{
+  "name": "solid-tpf",
+  "version": "0.1.0",
+  "description": "Triple Pattern Fragments interface to a Solid server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/solid/solid-tpf.git"
+  },
+  "keywords": [
+    "Linked Data",
+    "Solid"
+  ],
+  "author": "Ruben Verborgh <ruben@verborgh.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/solid/solid-tpf/issues"
+  },
+  "homepage": "https://github.com/solid/solid-tpf#readme"
+}
