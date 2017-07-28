@@ -168,7 +168,7 @@
     quote-props: [2, "consistent-as-needed"],
     quotes: [2, "single", "avoid-escape"],
     semi-spacing: 2,
-    semi: 2,
+    // semi: 2 // does not work yet with for await of
     sort-vars: 0,
     keyword-spacing: 2,
     space-before-blocks: 2,

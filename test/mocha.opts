@@ -1,0 +1,4 @@
+--compilers js:babel-register
+--require source-map-support/register
+--require babel-polyfill
+--require test/setup

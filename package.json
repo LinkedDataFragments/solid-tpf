@@ -17,17 +17,26 @@
   },
   "homepage": "https://github.com/solid/solid-tpf#readme",
   "scripts": {
-    "test": "npm run prepare && npm run lint",
+    "test": "npm run lint && npm run mocha",
+    "mocha": "mocha",
     "prepare": "gulp build",
-    "lint": "eslint *.js src/*.js"
+    "lint": "eslint *.js src/*.js test/**/*.js"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
-    "babel-preset-node6": "^11.0.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "chai": "^4.1.0",
+    "chai-as-promised": "^7.1.1",
     "eslint": "^4.3.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
-    "pre-commit": "^1.2.2"
+    "mocha": "^3.4.2",
+    "pre-commit": "^1.2.2",
+    "promisify-node": "^0.4.0",
+    "source-map-support": "^0.4.15"
   },
   "pre-commit": [
     "test"
