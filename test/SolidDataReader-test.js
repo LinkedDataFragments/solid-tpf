@@ -44,9 +44,10 @@ describe('SolidDataReader', () => {
 
   describe('with the default test folder', () => {
     const path = join(DATA_FOLDER, 'default');
+    const url = 'https://example.org/solid'
     let reader;
     before(() => {
-      reader = new SolidDataReader({ path });
+      reader = new SolidDataReader({ path, url });
     });
 
     describe('getFiles', () => {
@@ -58,7 +59,8 @@ describe('SolidDataReader', () => {
           `${path}/everyone.ttl`,
           `${path}/everyone2.ttl`,
           `${path}/subfolder-a/everyone.ttl`,
-          `${path}/subfolder-a/subfolder-aa/everyone.ttl`,
+          `${path}/subfolder-a/subfolder-aa/.acl`,
+          `${path}/subfolder-a/subfolder-aa/alice.ttl`,
           `${path}/subfolder-b/everyone.ttl`,
         ]);
       });
@@ -146,12 +148,12 @@ describe('SolidDataReader', () => {
       });
 
       describe('for a third-level file', () => {
-        const file = join(path, 'subfolder-a/subfolder-aa/everyone.ttl');
+        const file = join(path, 'subfolder-a/subfolder-aa/alice.ttl');
 
         it('returns all ACL files', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
-            `${path}/subfolder-a/subfolder-aa/everyone.ttl.acl`,
+            `${path}/subfolder-a/subfolder-aa/alice.ttl.acl`,
             `${path}/subfolder-a/subfolder-aa/.acl`,
             `${path}/subfolder-a/.acl`,
             `${path}/.acl`,
@@ -162,11 +164,38 @@ describe('SolidDataReader', () => {
 
     describe('getAclFile', () => {
       describe('for a third-level file', () => {
-        const file = join(path, 'subfolder-a/subfolder-aa/everyone.ttl');
+        const file = join(path, 'subfolder-a/subfolder-aa/alice.ttl');
 
         it('returns the most specific existing ACL file', async () => {
           const aclFile = await reader.getAclFile(file);
-          expect(aclFile).to.equal(`${path}/.acl`);
+          expect(aclFile).to.equal(`${path}/subfolder-a/subfolder-aa/.acl`);
+        });
+      });
+    });
+
+    describe('getReaders', () => {
+      describe('for everyone.ttl', () => {
+        const file = join(path, 'everyone.ttl');
+
+        it('returns the readers', async () => {
+          const readers = await toArray(reader.getReaders(file));
+          readers.sort();
+          expect(readers).to.deep.equal([
+            'http://xmlns.com/foaf/0.1/Agent',
+            'https://example.org/agents/alice#me',
+          ]);
+        });
+      });
+
+      describe('for alice.ttl', () => {
+        const file = join(path, 'subfolder-a/subfolder-aa/alice.ttl');
+
+        it('returns the readers', async () => {
+          const readers = await toArray(reader.getReaders(file));
+          readers.sort();
+          expect(readers).to.deep.equal([
+            'https://example.org/agents/alice#me',
+          ]);
         });
       });
     });

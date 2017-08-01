@@ -6,7 +6,7 @@
     acl:agentClass foaf:Agent;
     acl:accessTo </>;
     acl:defaultForNew </>;
-    acl:mode acl:Read.
+    acl:mode acl:Append.
 
 <#Owner> a acl:Authorization;
   acl:accessTo </>;

@@ -1,14 +1,17 @@
 import * as fs from 'fs';
 import { join } from 'path';
+import * as rdf from 'rdflib';
 import promisify from 'promisify-node';
+import { PermissionSet } from 'solid-permissions';
 
-const { lstat, readdir } = promisify(fs);
+const { lstat, readdir, readFile } = promisify(fs);
 
 const ACL_EXTENSION = '.acl';
 
 export default class SolidDataReader {
-  constructor({ path = '' } = {}) {
-    this.path = path;
+  constructor({ url = '', path = '' } = {}) {
+    this.url = url.replace(/\/$/, '');
+    this.path = path.replace(/\/$/, '');
   }
 
   // Gets all files in this Solid instance
@@ -24,6 +27,26 @@ export default class SolidDataReader {
           folders.push(item);
       }
     }
+  }
+
+  // Gets all agents that can read the given file
+  async * getReaders(file) {
+    const aclFile = await this.getAclFile(file);
+    const url = this._getUrlOf(file);
+    const aclUrl = this._getUrlOf(aclFile);
+    const graph = await this._loadGraph(aclFile);
+    const permissions = new PermissionSet(url, aclUrl, false, { graph, rdf });
+    // Find all agents with any permission
+    const agents = new Set();
+    for (const { agent } of permissions.allAuthorizations())
+      agents.add(agent);
+    // Return those agents with read permissions
+    for (const agent of agents) {
+      if (await permissions.checkAccess(url, agent, 'Read'))
+        yield agent;
+    }
+    // Only the first ACL file is valid
+    return;
   }
 
   // Get the most specific ACL file for the given file
@@ -59,5 +82,20 @@ export default class SolidDataReader {
       yield file + ACL_EXTENSION;
       file = file.replace(/[^\/]*\/$/, '');
     }
+  }
+
+  // Gets the URL corresponding to the file
+  _getUrlOf(file) {
+    if (file.indexOf(this.path) !== 0)
+      return '';
+    return this.url + file.substring(this.path.length);
+  }
+
+  // Loads and returns the graph in the given file
+  async _loadGraph(file) {
+    const graph = rdf.graph();
+    const contents = await readFile(file, 'utf8');
+    rdf.parse(contents, graph, this._getUrlOf(file), 'text/turtle');
+    return graph;
   }
 }

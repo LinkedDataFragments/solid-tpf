@@ -40,5 +40,9 @@
   },
   "pre-commit": [
     "test"
-  ]
+  ],
+  "dependencies": {
+    "rdflib": "^0.15.0",
+    "solid-permissions": "^0.5.1"
+  }
 }
