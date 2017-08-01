@@ -17,10 +17,7 @@ describe('SolidDataReader', () => {
 
     describe('getFiles', () => {
       it('throws an error', async () => {
-        await expect((async () => {
-          for await (const file of reader.getFiles())
-            throw file;
-        })())
+        expect(toArray(reader.getFiles()))
         .to.be.rejectedWith(/no such file or directory/);
       });
     });
@@ -39,9 +36,7 @@ describe('SolidDataReader', () => {
 
     describe('getFiles', () => {
       it('returns no files', async () => {
-        const files = []
-        for await (const file of reader.getFiles())
-          files.push(file);
+        const files = await toArray(reader.getFiles());
         expect(files).to.be.empty;
       });
     });
@@ -56,17 +51,119 @@ describe('SolidDataReader', () => {
 
     describe('getFiles', () => {
       it('returns all files', async () => {
-        const files = []
-        for await (const file of reader.getFiles())
-          files.push(file);
+        const files = await toArray(reader.getFiles());
         files.sort();
         expect(files).to.deep.equal([
           `${path}/everyone.ttl`,
           `${path}/everyone2.ttl`,
           `${path}/subfolder-a/everyone.ttl`,
+          `${path}/subfolder-a/subfolder-aa/everyone.ttl`,
           `${path}/subfolder-b/everyone.ttl`,
         ]);
       });
     });
+
+    describe('getAclFiles', () => {
+      describe('for a file outside of the test folder', () => {
+        const file = DATA_FOLDER;
+
+        it('returns no ACL files', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.be.empty;
+        });
+      });
+
+      describe('for a first-level folder (without trailing slash)', () => {
+        const file = path;
+
+        it('returns a single ACL file', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a first-level folder (with trailing slash)', () => {
+        const file = path + '/';
+
+        it('returns a single ACL file', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a first-level file', () => {
+        const file = join(path, 'everyone.ttl');
+
+        it('returns all ACL files', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/everyone.ttl.acl`,
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a second-level folder (without trailing slash)', () => {
+        const file = join(path, 'subfolder-a');
+
+        it('returns a single ACL file', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/subfolder-a/.acl`,
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a second-level folder (with trailing slash)', () => {
+        const file = join(path, 'subfolder-a');
+
+        it('returns a single ACL file', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/subfolder-a/.acl`,
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a second-level file', () => {
+        const file = join(path, 'subfolder-a/everyone.ttl');
+
+        it('returns all ACL files', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/subfolder-a/everyone.ttl.acl`,
+            `${path}/subfolder-a/.acl`,
+            `${path}/.acl`,
+          ]);
+        });
+      });
+
+      describe('for a third-level file', () => {
+        const file = join(path, 'subfolder-a/subfolder-aa/everyone.ttl');
+
+        it('returns all ACL files', async () => {
+          const files = await toArray(reader.getAclFiles(file));
+          expect(files).to.deep.equal([
+            `${path}/subfolder-a/subfolder-aa/everyone.ttl.acl`,
+            `${path}/subfolder-a/subfolder-aa/.acl`,
+            `${path}/subfolder-a/.acl`,
+            `${path}/.acl`,
+          ]);
+        });
+      });
+    });
   });
 });
+
+async function toArray(asyncIterator) {
+  const items = [];
+  for await (const item of asyncIterator)
+    items.push(item);
+  return items;
+}
