@@ -29,8 +29,21 @@ export default class SolidDataReader {
     }
   }
 
+  // Gets all files grouped by the agents that can read them
+  async getFilesByReadAgent(options) {
+    const files = new Map();
+    for await (const file of this.getFiles(options)) {
+      for await (const agent of this.getReadAgents(file)) {
+        if (!files.has(agent))
+          files.set(agent, new Set());
+        files.get(agent).add(file);
+      }
+    }
+    return files;
+  }
+
   // Gets all agents that can read the given file
-  async * getReaders(file) {
+  async * getReadAgents(file) {
     const aclFile = await this.getAclFile(file);
     const url = this._getUrlOf(file);
     const aclUrl = this._getUrlOf(aclFile);

@@ -8,6 +8,9 @@ const { open, close, unlink } = promisify(fs);
 
 const DATA_FOLDER = join(__dirname, 'assets/data');
 
+const EVERYONE = 'http://xmlns.com/foaf/0.1/Agent';
+const ALICE = 'https://example.org/agents/alice#me';
+
 describe('SolidDataReader', () => {
   describe('with an invalid path', () => {
     let reader;
@@ -190,14 +193,14 @@ describe('SolidDataReader', () => {
       });
     });
 
-    describe('getReaders', () => {
+    describe('getReadAgents', () => {
       describe('for everyone.ttl', () => {
         const file = join(path, 'everyone.ttl');
 
-        it('returns the readers', async () => {
-          const readers = await toArray(reader.getReaders(file));
-          readers.sort();
-          expect(readers).to.deep.equal([
+        it('returns the agents who are allowed to read', async () => {
+          const agents = await toArray(reader.getReadAgents(file));
+          agents.sort();
+          expect(agents).to.deep.equal([
             'http://xmlns.com/foaf/0.1/Agent',
             'https://example.org/agents/alice#me',
           ]);
@@ -207,13 +210,87 @@ describe('SolidDataReader', () => {
       describe('for alice.ttl', () => {
         const file = join(path, 'subfolder-a/subfolder-aa/alice.ttl');
 
-        it('returns the readers', async () => {
-          const readers = await toArray(reader.getReaders(file));
-          readers.sort();
-          expect(readers).to.deep.equal([
+        it('returns the agents who are allowed to read', async () => {
+          const agents = await toArray(reader.getReadAgents(file));
+          agents.sort();
+          expect(agents).to.deep.equal([
             'https://example.org/agents/alice#me',
           ]);
         });
+      });
+    });
+
+    describe('getFilesByReadAgent', () => {
+      const filter = /\.ttl$/;
+      let files;
+      before(async () => {
+        files = await reader.getFilesByReadAgent({ filter });
+      });
+
+      it('returns a map with two agents', () => {
+        const agents = Array.from(files.keys());
+        agents.sort();
+        expect(agents).to.deep.equal([EVERYONE, ALICE]);
+      });
+
+      it('returns all files everyone can read', () => {
+        const agentFiles = Array.from(files.get(EVERYONE));
+        agentFiles.sort();
+        expect(Array.from(agentFiles)).to.deep.equal([
+          `${path}/everyone.ttl`,
+          `${path}/everyone2.ttl`,
+          `${path}/subfolder-a/everyone.ttl`,
+          `${path}/subfolder-b/everyone.ttl`,
+        ]);
+      });
+
+      it('returns all files Alice can read', () => {
+        const agentFiles = Array.from(files.get(ALICE));
+        agentFiles.sort();
+        expect(Array.from(agentFiles)).to.deep.equal([
+          `${path}/everyone.ttl`,
+          `${path}/everyone2.ttl`,
+          `${path}/subfolder-a/everyone.ttl`,
+          `${path}/subfolder-a/subfolder-aa/alice.ttl`,
+          `${path}/subfolder-b/everyone.ttl`,
+        ]);
+      });
+    });
+
+    describe('getFilesByReadAgent', () => {
+      const filter = /\.ttl$/;
+      let files;
+      before(async () => {
+        files = await reader.getFilesByReadAgent({ filter });
+      });
+
+      it('returns a map with two agents', () => {
+        const agents = Array.from(files.keys());
+        agents.sort();
+        expect(agents).to.deep.equal([EVERYONE, ALICE]);
+      });
+
+      it('returns all files everyone can read', () => {
+        const agentFiles = Array.from(files.get(EVERYONE));
+        agentFiles.sort();
+        expect(Array.from(agentFiles)).to.deep.equal([
+          `${path}/everyone.ttl`,
+          `${path}/everyone2.ttl`,
+          `${path}/subfolder-a/everyone.ttl`,
+          `${path}/subfolder-b/everyone.ttl`,
+        ]);
+      });
+
+      it('returns all files Alice can read', () => {
+        const agentFiles = Array.from(files.get(ALICE));
+        agentFiles.sort();
+        expect(Array.from(agentFiles)).to.deep.equal([
+          `${path}/everyone.ttl`,
+          `${path}/everyone2.ttl`,
+          `${path}/subfolder-a/everyone.ttl`,
+          `${path}/subfolder-a/subfolder-aa/alice.ttl`,
+          `${path}/subfolder-b/everyone.ttl`,
+        ]);
       });
     });
   });
