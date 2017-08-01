@@ -51,18 +51,35 @@ describe('SolidDataReader', () => {
     });
 
     describe('getFiles', () => {
-      it('returns all files', async () => {
-        const files = await toArray(reader.getFiles());
-        files.sort();
-        expect(files).to.deep.equal([
-          `${path}/.acl`,
-          `${path}/everyone.ttl`,
-          `${path}/everyone2.ttl`,
-          `${path}/subfolder-a/everyone.ttl`,
-          `${path}/subfolder-a/subfolder-aa/.acl`,
-          `${path}/subfolder-a/subfolder-aa/alice.ttl`,
-          `${path}/subfolder-b/everyone.ttl`,
-        ]);
+      describe('without filter', () => {
+        it('returns all files', async () => {
+          const files = await toArray(reader.getFiles());
+          files.sort();
+          expect(files).to.deep.equal([
+            `${path}/.acl`,
+            `${path}/everyone.ttl`,
+            `${path}/everyone2.ttl`,
+            `${path}/subfolder-a/everyone.ttl`,
+            `${path}/subfolder-a/subfolder-aa/.acl`,
+            `${path}/subfolder-a/subfolder-aa/alice.ttl`,
+            `${path}/subfolder-b/everyone.ttl`,
+          ]);
+        });
+      });
+
+      describe('with filter', () => {
+        it('returns only matching files', async () => {
+          const filter = /\.ttl$/;
+          const files = await toArray(reader.getFiles({ filter }));
+          files.sort();
+          expect(files).to.deep.equal([
+            `${path}/everyone.ttl`,
+            `${path}/everyone2.ttl`,
+            `${path}/subfolder-a/everyone.ttl`,
+            `${path}/subfolder-a/subfolder-aa/alice.ttl`,
+            `${path}/subfolder-b/everyone.ttl`,
+          ]);
+        });
       });
     });
 

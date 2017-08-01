@@ -15,13 +15,13 @@ export default class SolidDataReader {
   }
 
   // Gets all files in this Solid instance
-  async * getFiles() {
+  async * getFiles({ filter = /(?:)/ } = {}) {
     const folders = [this.path];
     for (const folder of folders) {
       const items = (await readdir(folder)).map(f => join(folder, f));
       for (const item of items) {
         const stats = await lstat(item);
-        if (stats.isFile())
+        if (stats.isFile() && filter.test(item))
           yield item;
         else if (stats.isDirectory())
           folders.push(item);
