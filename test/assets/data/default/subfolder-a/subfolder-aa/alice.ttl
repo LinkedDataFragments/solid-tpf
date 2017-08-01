@@ -1,1 +1,1 @@
-<urn:test:aa-everyone> <urn:test:b> <urn:test:c>.
+<urn:test:alice> <urn:test:b> <urn:test:c>.

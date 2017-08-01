@@ -1,12 +1,14 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import * as rdf from 'rdflib';
+import { lookup } from 'mime-types';
 import promisify from 'promisify-node';
 import { PermissionSet } from 'solid-permissions';
 
-const { lstat, readdir, readFile } = promisify(fs);
+const { lstat, readdir, readFile } = promisify(fs, null, true);
 
 const ACL_EXTENSION = '.acl';
+const DEFAULT_CONTENT_TYPE = 'text/turtle'
 
 export default class SolidDataReader {
   constructor({ url = '', path = '' } = {}) {
@@ -45,9 +47,9 @@ export default class SolidDataReader {
   // Gets all agents that can read the given file
   async * getReadAgents(file) {
     const aclFile = await this.getAclFile(file);
-    const url = this._getUrlOf(file);
-    const aclUrl = this._getUrlOf(aclFile);
-    const graph = await this._loadGraph(aclFile);
+    const url = this.getUrlOf(file);
+    const aclUrl = this.getUrlOf(aclFile);
+    const graph = await this.readFileGraph(aclFile);
     const permissions = new PermissionSet(url, aclUrl, false, { graph, rdf });
     // Find all agents with any permission
     const agents = new Set();
@@ -98,17 +100,18 @@ export default class SolidDataReader {
   }
 
   // Gets the URL corresponding to the file
-  _getUrlOf(file) {
+  getUrlOf(file) {
     if (file.indexOf(this.path) !== 0)
       return '';
     return this.url + file.substring(this.path.length);
   }
 
   // Loads and returns the graph in the given file
-  async _loadGraph(file) {
+  async readFileGraph(file) {
     const graph = rdf.graph();
     const contents = await readFile(file, 'utf8');
-    rdf.parse(contents, graph, this._getUrlOf(file), 'text/turtle');
+    const contentType = lookup(file) || DEFAULT_CONTENT_TYPE;
+    rdf.parse(contents, graph, this.getUrlOf(file), contentType);
     return graph;
   }
 }

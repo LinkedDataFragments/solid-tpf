@@ -4,7 +4,7 @@ import { join } from 'path';
 import { expect } from 'chai';
 import promisify from 'promisify-node';
 
-const { open, close, unlink } = promisify(fs);
+const { open, close, unlink } = promisify(fs, null, true);
 
 const DATA_FOLDER = join(__dirname, 'assets/data');
 
