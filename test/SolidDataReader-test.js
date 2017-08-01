@@ -54,6 +54,7 @@ describe('SolidDataReader', () => {
         const files = await toArray(reader.getFiles());
         files.sort();
         expect(files).to.deep.equal([
+          `${path}/.acl`,
           `${path}/everyone.ttl`,
           `${path}/everyone2.ttl`,
           `${path}/subfolder-a/everyone.ttl`,
@@ -155,6 +156,17 @@ describe('SolidDataReader', () => {
             `${path}/subfolder-a/.acl`,
             `${path}/.acl`,
           ]);
+        });
+      });
+    });
+
+    describe('getAclFile', () => {
+      describe('for a third-level file', () => {
+        const file = join(path, 'subfolder-a/subfolder-aa/everyone.ttl');
+
+        it('returns the most specific existing ACL file', async () => {
+          const aclFile = await reader.getAclFile(file);
+          expect(aclFile).to.equal(`${path}/.acl`);
         });
       });
     });

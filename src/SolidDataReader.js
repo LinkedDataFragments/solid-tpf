@@ -26,6 +26,16 @@ export default class SolidDataReader {
     }
   }
 
+  // Get the most specific ACL file for the given file
+  async getAclFile(file) {
+    for await (const aclFile of this.getAclFiles(file)) {
+      const exists = await lstat(aclFile).then(f => f.isFile(), e => false);
+      if (exists)
+        return aclFile;
+    }
+    throw new Error(`No ACL file found for ${file}.`);
+  }
+
   // Gets all possible ACL files for the given file
   async * getAclFiles(file) {
     // Ensure the file is within this Solid instance
