@@ -41,7 +41,12 @@ async function convert(baseUrl, basePath, baseDestination) {
       url.host = host;
       const path = join(basePath, host);
       const destination = join(baseDestination, host);
-      await convertFolder(url.toString(), path, destination);
+      try {
+        await convertFolder(url.toString(), path, destination);
+      }
+      catch (e) {
+        console.error(`Skipping ${host} due to ${e}.`);
+      }
     }
   }
 }
