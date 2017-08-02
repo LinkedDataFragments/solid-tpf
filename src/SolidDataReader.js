@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 import { join } from 'path';
-import * as rdf from 'rdflib';
 import { lookup } from 'mime-types';
 import promisify from 'promisify-node';
+import rdf from 'rdf-ext';
+import rdfFormats from 'rdf-formats-common';
 import { PermissionSet } from 'solid-permissions';
 
-const { lstat, readdir, readFile } = promisify(fs, null, true);
+const { lstat, readdir } = promisify(fs, null, true);
+const { parsers } = rdfFormats();
 
 const ACL_EXTENSION = '.acl';
 const DEFAULT_CONTENT_TYPE = 'text/turtle'
@@ -108,10 +110,25 @@ export default class SolidDataReader {
 
   // Loads and returns the graph in the given file
   async readFileGraph(file) {
-    const graph = rdf.graph();
-    const contents = await readFile(file, 'utf8');
+    const graph = new Graph();
+
+    // Create an appropriate parser
     const contentType = lookup(file) || DEFAULT_CONTENT_TYPE;
-    rdf.parse(contents, graph, this.getUrlOf(file), contentType);
-    return graph;
+    const parser = parsers.find(contentType);
+    if (!parser)
+      return graph;
+
+    // Collect parsed triples into an array
+    const baseIRI = this.getUrlOf(file);
+    const stream = fs.createReadStream(file, 'utf8');
+    const triples = parser.import(stream, { baseIRI });
+    return graph.import(triples);
+  }
+}
+
+// solid-permissions expects `match` to return an array
+class Graph extends rdf.defaults.Dataset {
+  match(subject, predicate, object) {
+    return super.match(subject, predicate, object)._quads;
   }
 }

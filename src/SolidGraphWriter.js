@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import rimraf from 'rimraf';
-import * as rdf from 'rdflib';
 import { createHash } from 'crypto';
 import promisify from 'promisify-node';
+import rdfFormats from 'rdf-formats-common';
 
 const rmrf = promisify(rimraf);
+const { serializers } = rdfFormats();
 const { mkdir, writeFile, appendFile } = promisify(fs, null, true);
 
 const RDF_FILES = /\.(ttl|nt|n3|json|jsonld)$/;
@@ -63,7 +64,13 @@ export default class SolidGraphWriter {
     catch (e) { return ''; }
 
     // Serialize the graph
-    const url = graph.sym(this.reader.getUrlOf(file));
-    return rdf.serialize(url, graph, this.url, OUTPUT_TYPE);
+    const serializer = serializers.find(OUTPUT_TYPE);
+    return new Promise((resolve, reject) => {
+      let result = '';
+      serializer.import(graph.toStream())
+        .on('error', reject)
+        .on('data', d => { result += d.toString(); })
+        .on('end', () => resolve(result));
+    });
   }
 }

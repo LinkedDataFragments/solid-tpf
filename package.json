@@ -47,7 +47,8 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "mime-types": "^2.1.16",
-    "rdflib": "^0.15.0",
+    "rdf-ext": "^1.0.0",
+    "rdf-formats-common": "^1.0.1",
     "rimraf": "^2.6.1",
     "solid-permissions": "^0.5.1"
   }
