@@ -16,6 +16,7 @@
     "url": "https://github.com/solid/solid-tpf/issues"
   },
   "homepage": "https://github.com/solid/solid-tpf#readme",
+  "main": "lib/index.js",
   "scripts": {
     "test": "npm run lint && npm run mocha",
     "mocha": "mocha",

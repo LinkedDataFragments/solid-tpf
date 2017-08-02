@@ -1,5 +1,4 @@
-import SolidGraphWriter from '../src/SolidGraphWriter';
-import SolidDataReader from '../src/SolidDataReader';
+import { SolidGraphWriter, SolidDataReader } from '../src/index';
 import * as fs from 'fs';
 import { join } from 'path';
 import rimraf from 'rimraf';

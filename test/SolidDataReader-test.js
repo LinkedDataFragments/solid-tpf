@@ -1,4 +1,4 @@
-import SolidDataReader from '../src/SolidDataReader';
+import { SolidDataReader } from '../src/index';
 import * as fs from 'fs';
 import { join } from 'path';
 import { expect } from 'chai';
