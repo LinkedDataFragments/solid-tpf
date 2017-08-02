@@ -26,22 +26,25 @@ export default class SolidGraphWriter {
     mkdir(this.destination);
 
     // Append each RDF graph to a combined file per agent
-    const agentFiles = {};
+    this.agentFiles = {};
     for await (const file of this.reader.getFiles({ filter })) {
-      // Create a string representation of the graph
-      const serialized = await this._serializeGraph(file);
-
-      // Append the graph to the files of all agents that may read it
-      for await (const agent of this.reader.getReadAgents(file)) {
-        const target = this._getAgentFile(agent);
-        if (!(agent in agentFiles))
-          agentFiles[agent] = target.replace(/.*\//, '');
-        await appendFile(target, serialized);
-      }
+      try { await this._appendGraph(file); }
+      catch (e) { /* ignore unparseable files */ }
     }
 
     // Write the index file
-    await writeFile(this._getIndexFile(), JSON.stringify(agentFiles));
+    await writeFile(this._getIndexFile(), JSON.stringify(this.agentFiles));
+  }
+
+  // Appends the graph to the files of all agents that may read it
+  async _appendGraph(file) {
+    const serialized = await this._serializeGraph(file);
+    for await (const agent of this.reader.getReadAgents(file)) {
+      const target = this._getAgentFile(agent);
+      if (!(agent in this.agentFiles))
+        this.agentFiles[agent] = target.replace(/.*\//, '');
+      await appendFile(target, serialized);
+    }
   }
 
   // Returns the name of the file corresponding to the given agent
@@ -57,13 +60,7 @@ export default class SolidGraphWriter {
 
   // Parses and re-serializes the graph in the given file
   async _serializeGraph(file) {
-    // Read the graph
-    let graph;
-    try { graph = await this.reader.readFileGraph(file); }
-    // Ignore unparseable files
-    catch (e) { return ''; }
-
-    // Serialize the graph
+    const graph = await this.reader.readFileGraph(file);
     const serializer = serializers.find(OUTPUT_TYPE);
     return new Promise((resolve, reject) => {
       let result = '';

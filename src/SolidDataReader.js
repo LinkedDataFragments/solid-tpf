@@ -122,7 +122,10 @@ export default class SolidDataReader {
     const baseIRI = this.getUrlOf(file);
     const stream = fs.createReadStream(file, 'utf8');
     const triples = parser.import(stream, { baseIRI });
-    return graph.import(triples);
+    return new Promise((resolve, reject) => {
+      triples.on('error', reject);
+      graph.import(triples).then(resolve, reject);
+    });
   }
 }
 
