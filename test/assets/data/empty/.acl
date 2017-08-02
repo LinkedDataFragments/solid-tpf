@@ -1,0 +1,15 @@
+@prefix acl: <http://www.w3.org/ns/auth/acl#>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+<#Public>
+    a acl:Authorization;
+    acl:agentClass foaf:Agent;
+    acl:accessTo </>;
+    acl:defaultForNew </>;
+    acl:mode acl:Read.
+
+<#Owner> a acl:Authorization;
+  acl:accessTo </>;
+  acl:defaultForNew </>;
+  acl:agent <https://example.org/agents/alice#me>;
+  acl:mode acl:Read, acl:Write, acl:Control.

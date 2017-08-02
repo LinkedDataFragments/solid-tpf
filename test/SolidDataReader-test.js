@@ -1,10 +1,6 @@
 import { SolidDataReader } from '../src/index';
-import * as fs from 'fs';
 import { join } from 'path';
 import { expect } from 'chai';
-import promisify from 'promisify-node';
-
-const { open, close, unlink } = promisify(fs, null, true);
 
 const DATA_FOLDER = join(__dirname, 'assets/data');
 
@@ -30,17 +26,15 @@ describe('SolidDataReader', () => {
     const path = join(DATA_FOLDER, 'empty');
     let reader;
     before(async () => {
-      await unlink(join(path, '.gitkeep')).catch(e => e);
       reader = new SolidDataReader({ path });
-    });
-    after(async () => {
-      await open(join(path, '.gitkeep'), 'w').then(close);
     });
 
     describe('getFiles', () => {
-      it('returns no files', async () => {
+      it('returns only the ACL file', async () => {
         const files = await toArray(reader.getFiles());
-        expect(files).to.be.empty;
+        expect(files).to.deep.equal([
+          `${path}/.acl`,
+        ]);
       });
     });
   });
