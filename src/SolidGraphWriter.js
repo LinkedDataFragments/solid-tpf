@@ -59,7 +59,8 @@ export default class SolidGraphWriter {
     // Read the graph
     let graph;
     try { graph = await this.reader.readFileGraph(file); }
-    catch (e) { /* ignore unparseable files */ }
+    // Ignore unparseable files
+    catch (e) { return ''; }
 
     // Serialize the graph
     const url = graph.sym(this.reader.getUrlOf(file));

@@ -1,0 +1,84 @@
+#!/usr/bin/env node
+// Check argument length
+const { argv, exit } = process;
+const args = argv.slice(2);
+if (args.length !== 3)
+  stop(1, 'usage: solid-to-tpf https://domain.net/ /input/solid-folders /output/tpf-folder');
+
+// Verify paths exist and are different
+const [baseUrl, basePath, baseDestination] = args;
+if (basePath === baseDestination)
+  stop(2, 'Input and output paths need to be different.');
+
+// Imports
+require('babel-polyfill');
+const { URL } = require('url');
+const { join } = require('path');
+const promisify = require('promisify-node');
+const rmrf = promisify(require('rimraf'));
+const { lstat, readdir, mkdir } = promisify(require('fs'), null, true);
+const { SolidDataReader, SolidGraphWriter } = require('../lib/index');
+
+// Perform the conversion
+convert(baseUrl, basePath, baseDestination).catch(console.error);
+
+// Converts a Solid data folder (possibly with multiple hosts)
+async function convert(baseUrl, basePath, baseDestination) {
+  const aclFile = join(basePath, '.acl');
+  if (await isFile(aclFile)) {
+    console.error('ACL file found in root, converting as single-user instance.');
+    await convertFolder(baseUrl, basePath, baseDestination);
+  }
+  else {
+    console.error('No ACL file found in root, converting as multi-user instance.');
+    // Clear existing folder
+    await rmrf(baseDestination).catch(e => null);
+    await mkdir(baseDestination);
+    // Convert all hosts
+    const url = new URL(baseUrl);
+    const hosts = await getSubFolders(basePath);
+    for (const host of hosts) {
+      url.host = host;
+      const path = join(basePath, host);
+      const destination = join(baseDestination, host);
+      await convertFolder(url.toString(), path, destination);
+    }
+  }
+}
+
+// Converts a single Solid folder (corresponding to one host)
+async function convertFolder(url, path, destination) {
+  console.error(`Converting ${url} from ${path} to ${destination}.`);
+  const reader = new SolidDataReader({ url, path });
+  const writer = new SolidGraphWriter({ url, destination, reader });
+  await writer.writeGraphs();
+}
+
+// Returns whether the given path is a file
+async function isFile(path) {
+  return lstat(path).then(s => s.isFile(), e => false);
+}
+
+// Returns whether the given path is a folder
+async function isFolder(path) {
+  return lstat(path).then(s => s.isDirectory(), e => false);
+}
+
+// Returns a list of all subfolders of the given folder
+async function getSubFolders(folder) {
+  const items = await readdir(folder);
+  const subFolders = [];
+  for (const item of items) {
+    if (await isFolder(join(folder, item)))
+      subFolders.push(item);
+  }
+  return subFolders;
+}
+
+// Terminates the program with an error code an message
+function stop(code, message) {
+  console.error(message);
+  exit(code);
+}
+
+
