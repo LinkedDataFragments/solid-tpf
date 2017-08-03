@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { join } from 'path';
 import { lookup } from 'mime-types';
+import memoize from 'memoizee';
 import promisify from 'promisify-node';
 import rdf from 'rdf-ext';
 import rdfFormats from 'rdf-formats-common';
@@ -11,6 +12,7 @@ const { parsers } = rdfFormats();
 
 const ACL_EXTENSIONS = ['.acl', ',acl'];
 const DEFAULT_CONTENT_TYPE = 'text/turtle'
+const MEMOIZE_OPTIONS = { max: 100, primitive: true };
 
 export default class SolidDataReader {
   static aclExtensions = ACL_EXTENSIONS;
@@ -18,6 +20,9 @@ export default class SolidDataReader {
   constructor({ url = '', path = '' } = {}) {
     this.url = url.replace(/\/$/, '');
     this.path = path.replace(/\/$/, '');
+
+    for (const method of ['getPermissionSet', '_fileExists'])
+      this[method] = memoize(this[method], MEMOIZE_OPTIONS);
   }
 
   // Gets all files in this Solid instance
@@ -50,29 +55,37 @@ export default class SolidDataReader {
 
   // Gets all agents that can read the given file
   async * getReadAgents(file) {
-    const aclFile = await this.getAclFile(file);
+    // Retrieve permissions and agents
     const url = this.getUrlOf(file);
-    const aclUrl = this.getUrlOf(aclFile);
-    const graph = await this.readFileGraph(aclFile);
-    const permissions = new PermissionSet(url, aclUrl, false, { graph, rdf });
-    // Find all agents with any permission
-    const agents = new Set();
-    for (const { agent } of permissions.allAuthorizations())
-      agents.add(agent);
-    // Return those agents with read permissions
-    for (const agent of agents) {
+    const aclFile = await this.getAclFile(file);
+    const permissions = await this.getPermissionSet(aclFile);
+
+    // Return only agents with read permissions
+    for (const agent of permissions.agents) {
       if (await permissions.checkAccess(url, agent, 'Read'))
         yield agent;
     }
-    // Only the first ACL file is valid
-    return;
+  }
+
+  // Reads the permissions set from the given ACL file
+  async getPermissionSet(aclFile) {
+    // Create the permissions set
+    const aclUrl = this.getUrlOf(aclFile);
+    const graph = await this.readFileGraph(aclFile);
+    const permissions = new PermissionSet(null, aclUrl, false, { graph, rdf });
+
+    // Find all agents with any permission
+    permissions.agents = new Set();
+    for (const { agent } of permissions.allAuthorizations())
+      permissions.agents.add(agent);
+
+    return permissions;
   }
 
   // Get the most specific ACL file for the given file
   async getAclFile(file) {
     for await (const aclFile of this.getAclFiles(file)) {
-      const exists = await lstat(aclFile).then(f => f.isFile(), e => false);
-      if (exists)
+      if (await this._fileExists(aclFile))
         return aclFile;
     }
     throw new Error(`No ACL file found for ${file}.`);
@@ -130,6 +143,11 @@ export default class SolidDataReader {
       triples.on('error', reject);
       graph.import(triples).then(resolve, reject);
     });
+  }
+
+  // Returns whether the given file exists
+  async _fileExists(file) {
+    return lstat(file).then(s => s.isFile(), e => false);
   }
 }
 
