@@ -9,7 +9,7 @@ const rmrf = promisify(rimraf);
 const { serializers } = rdfFormats();
 const { mkdir, writeFile, appendFile } = promisify(fs, null, true);
 
-const RDF_FILES = /\.(ttl|nt|n3|json|jsonld)$/;
+const RDF_FILES = /\/[^.,]+$|\.(ttl|nt|n3|json|jsonld)$/;
 const OUTPUT_TYPE = 'application/n-triples';
 
 export default class SolidGraphWriter {
