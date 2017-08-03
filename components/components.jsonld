@@ -1,0 +1,9 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/contexts/solid-tpf.jsonld",
+  "@id": "npmd:solid-tpf",
+  "@type": "Module",
+  "requireName": "solid-tpf",
+  "import": [
+    "Datasource/Solid.jsonld"
+  ]
+}

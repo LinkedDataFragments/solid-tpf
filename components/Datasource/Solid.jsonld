@@ -1,0 +1,18 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/contexts/solid-tpf.jsonld",
+  "@id": "npmd:solid-tpf",
+  "components": [
+    {
+      "@id": "solidtpf:Datasource/Solid",
+      "@type": "Class",
+      "extends": "ldfs:Datasource",
+      "requireElement": "SolidDatasource",
+      "comment": "A SolidDatasource exposes the data of a Solid instance.",
+      "constructorArguments": [
+        {
+          "extends": "ldfs:Datasource/Memory/constructorArgumentsObject"
+        }
+      ]
+    }
+  ]
+}

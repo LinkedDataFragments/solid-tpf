@@ -47,11 +47,17 @@
   ],
   "dependencies": {
     "babel-polyfill": "^6.23.0",
+    "ldf-server": "LinkedDataFragments/Server.js#feature-lsd-split",
     "memoizee": "^0.4.5",
     "mime-types": "^2.1.16",
     "rdf-ext": "^1.0.0",
     "rdf-formats-common": "^1.0.1",
     "rimraf": "^2.6.1",
     "solid-permissions": "^0.5.1"
+  },
+  "lsd:module": "https://linkedsoftwaredependencies.org/bundles/npm/solid-tpf",
+  "lsd:components": "components/components.jsonld",
+  "lsd:contexts": {
+    "https://linkedsoftwaredependencies.org/contexts/solid-tpf.jsonld": "components/context.jsonld"
   }
 }

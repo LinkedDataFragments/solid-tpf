@@ -1,0 +1,9 @@
+{
+  "@context": [
+    "https://linkedsoftwaredependencies.org/contexts/ldf-server.jsonld",
+    {
+      "solidtpf": "npmd:solid-tpf/",
+      "SolidDatasource": "solidtpf:Datasource/Solid"
+    }
+  ]
+}
