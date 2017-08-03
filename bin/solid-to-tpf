@@ -24,8 +24,9 @@ convert(baseUrl, basePath, baseDestination).catch(console.error);
 
 // Converts a Solid data folder (possibly with multiple hosts)
 async function convert(baseUrl, basePath, baseDestination) {
-  const aclFile = join(basePath, '.acl');
-  if (await isFile(aclFile)) {
+  const aclFiles = SolidDataReader.aclExtensions.map(e => join(basePath, e));
+  const aclFilesExist = await Promise.all(aclFiles.map(isFile));
+  if (aclFilesExist.indexOf(true) >= 0) {
     console.error('ACL file found in root, converting as single-user instance.');
     await convertFolder(baseUrl, basePath, baseDestination);
   }

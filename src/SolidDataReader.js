@@ -9,10 +9,12 @@ import { PermissionSet } from 'solid-permissions';
 const { lstat, readdir } = promisify(fs, null, true);
 const { parsers } = rdfFormats();
 
-const ACL_EXTENSION = '.acl';
+const ACL_EXTENSIONS = ['.acl', ',acl'];
 const DEFAULT_CONTENT_TYPE = 'text/turtle'
 
 export default class SolidDataReader {
+  static aclExtensions = ACL_EXTENSIONS;
+
   constructor({ url = '', path = '' } = {}) {
     this.url = url.replace(/\/$/, '');
     this.path = path.replace(/\/$/, '');
@@ -89,14 +91,16 @@ export default class SolidDataReader {
         file += '/';
       // Files can have a file-specific ACL
       else {
-        yield file + ACL_EXTENSION;
+        for (const extension of ACL_EXTENSIONS)
+          yield file + extension;
         file = file.replace(/[^\/]+$/, '');
       }
     }
 
     // Return ACLs for the current folder and all parent folders
     while (file.length >= this.path.length) {
-      yield file + ACL_EXTENSION;
+      for (const extension of ACL_EXTENSIONS)
+        yield file + extension;
       file = file.replace(/[^\/]*\/$/, '');
     }
   }

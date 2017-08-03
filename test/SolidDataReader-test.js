@@ -57,7 +57,7 @@ describe('SolidDataReader', () => {
             `${path}/everyone.ttl`,
             `${path}/everyone2.ttl`,
             `${path}/subfolder-a/everyone.ttl`,
-            `${path}/subfolder-a/subfolder-aa/.acl`,
+            `${path}/subfolder-a/subfolder-aa/,acl`,
             `${path}/subfolder-a/subfolder-aa/alice.ttl`,
             `${path}/subfolder-b/everyone.ttl`,
           ]);
@@ -93,10 +93,11 @@ describe('SolidDataReader', () => {
       describe('for a first-level folder (without trailing slash)', () => {
         const file = path;
 
-        it('returns a single ACL file', async () => {
+        it('returns one ACL location', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -104,10 +105,11 @@ describe('SolidDataReader', () => {
       describe('for a first-level folder (with trailing slash)', () => {
         const file = path + '/';
 
-        it('returns a single ACL file', async () => {
+        it('returns one ACL location', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -115,11 +117,13 @@ describe('SolidDataReader', () => {
       describe('for a first-level file', () => {
         const file = join(path, 'everyone.ttl');
 
-        it('returns all ACL files', async () => {
+        it('returns all ACL locations', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/everyone.ttl.acl`,
+            `${path}/everyone.ttl,acl`,
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -127,11 +131,13 @@ describe('SolidDataReader', () => {
       describe('for a second-level folder (without trailing slash)', () => {
         const file = join(path, 'subfolder-a');
 
-        it('returns a single ACL file', async () => {
+        it('returns all ACL locations', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/subfolder-a/.acl`,
+            `${path}/subfolder-a/,acl`,
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -139,11 +145,13 @@ describe('SolidDataReader', () => {
       describe('for a second-level folder (with trailing slash)', () => {
         const file = join(path, 'subfolder-a');
 
-        it('returns a single ACL file', async () => {
+        it('returns all ACL locations', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/subfolder-a/.acl`,
+            `${path}/subfolder-a/,acl`,
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -151,12 +159,15 @@ describe('SolidDataReader', () => {
       describe('for a second-level file', () => {
         const file = join(path, 'subfolder-a/everyone.ttl');
 
-        it('returns all ACL files', async () => {
+        it('returns all ACL locations', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/subfolder-a/everyone.ttl.acl`,
+            `${path}/subfolder-a/everyone.ttl,acl`,
             `${path}/subfolder-a/.acl`,
+            `${path}/subfolder-a/,acl`,
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -164,13 +175,17 @@ describe('SolidDataReader', () => {
       describe('for a third-level file', () => {
         const file = join(path, 'subfolder-a/subfolder-aa/alice.ttl');
 
-        it('returns all ACL files', async () => {
+        it('returns all ACL locations', async () => {
           const files = await toArray(reader.getAclFiles(file));
           expect(files).to.deep.equal([
             `${path}/subfolder-a/subfolder-aa/alice.ttl.acl`,
+            `${path}/subfolder-a/subfolder-aa/alice.ttl,acl`,
             `${path}/subfolder-a/subfolder-aa/.acl`,
+            `${path}/subfolder-a/subfolder-aa/,acl`,
             `${path}/subfolder-a/.acl`,
+            `${path}/subfolder-a/,acl`,
             `${path}/.acl`,
+            `${path}/,acl`,
           ]);
         });
       });
@@ -182,7 +197,7 @@ describe('SolidDataReader', () => {
 
         it('returns the most specific existing ACL file', async () => {
           const aclFile = await reader.getAclFile(file);
-          expect(aclFile).to.equal(`${path}/subfolder-a/subfolder-aa/.acl`);
+          expect(aclFile).to.equal(`${path}/subfolder-a/subfolder-aa/,acl`);
         });
       });
     });
