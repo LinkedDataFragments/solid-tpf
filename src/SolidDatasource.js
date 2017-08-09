@@ -1,7 +1,9 @@
 import ldf from 'ldf-server';
 import n3 from '@ldf/server-datasource-n3';
+import memoize from 'memoizee';
 
 const EVERYONE = 'http://xmlns.com/foaf/0.1/Agent';
+const MEMOIZE_OPTIONS = { max: 10, primitive: true };
 const EMPTY_DATASOURCE = new ldf.datasources.EmptyDatasource();
 
 export default class SolidDatasource extends ldf.datasources.Datasource {
@@ -17,6 +19,9 @@ export default class SolidDatasource extends ldf.datasources.Datasource {
   constructor({ url = '', file = '', ...options } = {}) {
     super(options);
     this._path = (url || file).replace(/\/?$/, '/');
+
+    for (const method of ['_getDatasource'])
+      this[method] = memoize(this[method], MEMOIZE_OPTIONS);
   }
 
   // Writes the results of the query to the given destination
