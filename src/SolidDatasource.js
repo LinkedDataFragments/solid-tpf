@@ -16,6 +16,7 @@ export default class SolidDatasource extends ldf.datasources.Datasource {
     totalCount: true,
   })
 
+  // Creates a new Solid datasource from the given location
   constructor({ url = '', file = '', ...options } = {}) {
     super(options);
     this._path = (url || file).replace(/\/?$/, '/');
@@ -24,32 +25,39 @@ export default class SolidDatasource extends ldf.datasources.Datasource {
       this[method] = memoize(this[method], MEMOIZE_OPTIONS);
   }
 
+  // Determine whether this is a single- or multi-user instance
+  async _initialize(done) {
+    // Multi-user instances do not have an index file in the root
+    this._multiUser = await this._parseIndex(this._path)
+                            .then(() => false, () => true)
+    done();
+  }
+
   // Writes the results of the query to the given destination
   async _executeQuery(query, destination) {
     // Process the hostname and user query features
-    const { user = EVERYONE, hostname = '', ...rest } = query;
+    const user = query.user || EVERYONE
+    const hostname = this._multiUser && query.hostname || '';
     delete query.features.user;
     delete query.features.hostname;
 
     // Execute the rest of the query on the hostname/user datasource
     try {
       const datasource = await this._getDatasource(hostname, user);
-      const result = datasource.select(rest, e => destination.emit('error', e));
+      const result = datasource.select(query, emitError);
       destination.copyProperties(result, ['metadata']);
       result.on('data', d => destination._push(d));
       result.on('end', () => destination.close());
     }
-    catch (error) {
-      destination.emit('error', error);
-    }
+    catch (error) { emitError(error); }
+    function emitError(error) { destination.emit('error', error); }
   }
 
   // Gets the relevant Solid datasource for the given hostname and user
   async _getDatasource(hostname, user) {
     // Retrieve the data file from the index
     const path = !hostname ? this._path : `${this._path}${hostname}/`;
-    const indexFile = path + 'index.json';
-    const index = await this._parseIndex(indexFile);
+    const index = await this._parseIndex(path).catch(e => ({}));
     const dataFile = user in index ? index[user] : index[EVERYONE];
 
     // Create a datasource with the data file
@@ -68,17 +76,16 @@ export default class SolidDatasource extends ldf.datasources.Datasource {
     }
   }
 
-  // Parses the given index file
-  async _parseIndex(url) {
+  // Parses the index file of the given path
+  async _parseIndex(path) {
     return new Promise((resolve, reject) => {
-      const stream = this._fetch({ url });
+      const stream = this._fetch({ url: path + 'index.json' });
       let json = '';
       stream.on('data', data => json += data);
       stream.on('end', () => resolve(json));
       stream.on('error', reject);
     })
-    .then(JSON.parse)
-    .catch(e => ({}));
+    .then(JSON.parse);
   }
 }
 
