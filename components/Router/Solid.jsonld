@@ -1,0 +1,21 @@
+{
+  "@context": "https://linkedsoftwaredependencies.org/contexts/solid-tpf.jsonld",
+  "@graph": [
+    {
+      "@id": "npmd:solid-tpf",
+      "components": [
+        {
+          "@id": "solidtpf:Router/Solid",
+          "@type": "Class",
+          "extends": "ldfs:Router",
+          "requireElement": "SolidRouter",
+          "comment": "A SolidRouter routes queries for a Solid host and user"
+        }
+      ]
+    },
+    {
+      "@id": "ldfs:router",
+      "default": { "@type": "solidtpf:Router/Solid" }
+    }
+  ]
+}

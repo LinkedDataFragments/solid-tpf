@@ -4,6 +4,7 @@
   "@type": "Module",
   "requireName": "solid-tpf",
   "import": [
-    "Datasource/Solid.jsonld"
+    "Datasource/Solid.jsonld",
+    "Router/Solid.jsonld"
   ]
 }
