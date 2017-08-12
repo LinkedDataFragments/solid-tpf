@@ -50,7 +50,7 @@ export default class SolidDatasource extends ldf.datasources.Datasource {
     const path = !hostname ? this._path : `${this._path}${hostname}/`;
     const indexFile = path + 'index.json';
     const index = await this._parseIndex(indexFile);
-    const dataFile = index[user];
+    const dataFile = user in index ? index[user] : index[EVERYONE];
 
     // Create a datasource with the data file
     const datasource = !dataFile ? EMPTY_DATASOURCE
