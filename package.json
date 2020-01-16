@@ -34,7 +34,7 @@
     "babel-register": "^6.24.1",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^4.3.0",
+    "eslint": "^4.18.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "mocha": "^3.4.2",
